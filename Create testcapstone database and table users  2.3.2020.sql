@@ -1,6 +1,7 @@
 /*
 this query creates user and vendor files for capstone project
 */
+
 use Master;
  go
  drop database if exists testcapstone
@@ -102,8 +103,6 @@ Insert into Requests (Description,Justification,UserId)
        
 go
 
-select * from requests
-
 Create table Requestline (
    Id int not null primary key identity(1,1),
    RequestID int not null foreign key references Requests(id),
@@ -111,12 +110,42 @@ Create table Requestline (
    Quantity int not null check (Quantity>0) default 1
 );
 
-Insert into Requestline (Quantity,RequestID,ProductID)
-       (1,(Select Id from Requests Where 
+Insert into Requestline (RequestID,ProductID,Quantity)
+    Values (1, 1, 1);
+Insert into Requestline (RequestID,ProductID,Quantity)
+    Values (1, 2, 1);
+Insert into Requestline (RequestID,ProductID,Quantity)
+    Values (3, 4, 4);
+Go
+
+select * from requests
+select * from products
+Select * from Requestline
+
+--Select * (p.Price*rl.Quantity) as Total from Requests r
+/*Select r.ID, (rl.quantity*p.Price) as total from Requests r
+   Join Requestline rl on rl.RequestId = r.Id
+   Join Products p on rl.Productid = p.id
+
+Update Requests r
+    Set r.Total = Total
+	from (Select r.ID, (rl.quantity*p.Price) as total from Requests r
+   Join Requestline rl on rl.RequestId = r.Id
+   Join Products p on rl.Productid = p.id)
+   Where r.Id = r.ID
+
+Update requests 
+   set Total = p.Price * rl.Quantity
+   where Id=rl.RequestId in (Select * from Requests r
+   Join Requestline rl on rl.RequestId = r.Id
+   Join Products p on rl.Productid = p.id)
+
+--Select * from Products p 
+--    join Requestline rl on rl.ProductID = p.ID
 
 
- select * from users;
-select * from vendor; 
+--select * from users;
+--select * from vendor; 
  /*Create database Capstone
  Go
  Create table Users (
@@ -148,3 +177,44 @@ Insert into Users
 	Values
 	('Stevensjudy','1111','Judy','Stevens','513-855-7777','jstevens@hotmail.com',1,1);
 	*/
+
+
+
+	-- Calculate Total for Request
+	*/
+Select p.name, rl.Quantity, p.Price, (rl.Quantity * p.price) as 'Line Total'
+	   From Requests r
+	     join Requestline rl
+		    on rl.RequestID =r.Id
+         join Products p
+		    on p.id = rl.ProductId
+			Where r.Description = '1st Request'
+
+Select sum(rl.Quantity * p.price) as 'Request Total'
+	   From Requests r
+	     join Requestline rl
+		    on rl.RequestID =r.Id
+         join Products p
+		    on p.id = rl.ProductId
+			Where r.Description = '1st Request'
+
+DECLARE @requestId int = 1;
+
+Update Requests 
+   Set Total= (
+   Select sum(rl.Quantity * p.price) as 'Request Total'
+	   From Requests r
+	     join Requestline rl
+		    on rl.RequestID =r.Id
+         join Products p
+		    on p.id = rl.ProductId
+			Where r.ID = @requestID
+)
+   Where id=@RequestId;
+Go
+
+
+Select * from Requests
+
+
+
